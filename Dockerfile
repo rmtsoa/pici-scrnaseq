@@ -17,12 +17,8 @@ RUN apt-get install -y build-essential hdf5-tools libhdf5-dev hdf5-helpers libhd
 
 RUN apt-get -y install libxml2-dev libcurl4-openssl-dev libssl-dev
 
-RUN mkdir -p ~/workspace/ && \
-	cd ~/workspace/ && \
-	mkdir tools
-
 #Install samtools
-RUN	cd ~/workspace/tools/ && \
+RUN	cd / && \
 	wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2 && \
 	bunzip2 samtools-1.3.1.tar.bz2 && \
 	tar -xvf samtools-1.3.1.tar && \
@@ -32,20 +28,20 @@ RUN	cd ~/workspace/tools/ && \
 
 
 #Install bam-readcount
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	mkdir git && \
 	cd git && \
 	git clone --recursive git://github.com/genome/bam-readcount.git && \
-	cd ~/workspace/tools/ && \
+	cd / && \
 	mkdir bam-readcount && \
 	cd bam-readcount && \
-	cmake ~/workspace/tools/git/bam-readcount && \
+	cmake /git/bam-readcount && \
 	make 
 
 
 
 #Install STAR
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	wget https://github.com/alexdobin/STAR/archive/2.5.1b.tar.gz && \
 	tar -zxvf 2.5.1b.tar.gz && \
 	cd STAR-2.5.1b/source && \
@@ -53,7 +49,7 @@ RUN cd ~/workspace/tools/ && \
 	file STAR
 
 #Install fastqc
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \
 	unzip fastqc_v0.11.5.zip && \
 	cd FastQC/ && \
@@ -73,12 +69,12 @@ RUN apt-get update \
 
 
 #Install picard
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	wget https://github.com/broadinstitute/picard/releases/download/1.140/picard-tools-1.140.zip -O picard-tools-1.140.zip && \
 	unzip picard-tools-1.140.zip 
 
 # Install kallisto
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	git clone https://github.com/pachterlab/kallisto.git && \
 	cd kallisto && \
 	mkdir build && \ 
@@ -88,15 +84,15 @@ RUN cd ~/workspace/tools/ && \
 	make install
 
 
-# Install scala, which is needed for cromwell.
-RUN wget http://www.scala-lang.org/files/archive/scala-2.11.7.deb && \
-    wget http://dl.bintray.com/sbt/debian/sbt-0.13.9.deb && \
-    dpkg -i scala-2.11.7.deb && \
-    dpkg -i sbt-0.13.9.deb && \
-    apt-get update && \
-    apt-get install -y scala sbt && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /*.deb && \
-    echo "exit" | sbt 
+# # Install scala, which is needed for cromwell.
+# RUN wget http://www.scala-lang.org/files/archive/scala-2.11.7.deb && \
+#     wget http://dl.bintray.com/sbt/debian/sbt-0.13.9.deb && \
+#     dpkg -i scala-2.11.7.deb && \
+#     dpkg -i sbt-0.13.9.deb && \
+#     apt-get update && \
+#     apt-get install -y scala sbt && \
+#     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /*.deb && \
+#     echo "exit" | sbt 
 
 #Get various R packages needed from RNA-seq analysis
 RUN echo "r <- getOption('repos'); r['CRAN'] <- 'http://cran.us.r-project.org'; options(repos = r);" > ~/.Rprofile
@@ -108,38 +104,40 @@ RUN Rscript -e 'install.packages("~/Downloads/Seurat_1.1.tar.gz",type="source",r
 RUN Rscript -e 'source("https://bioconductor.org/biocLite.R");biocLite("scde")'
 RUN Rscript -e 'source("https://bioconductor.org/biocLite.R"); biocLite("devtools"); biocLite("YosefLab/scone", dependencies=TRUE)'
 
-#Get cromwell.
-RUN  cd ~/workspace/tools/ && \
-    git clone https://github.com/broadinstitute/cromwell.git && \
-    cd cromwell && \
-    sbt assembly
+# #Get cromwell.
+# RUN  cd / && \
+#     git clone https://github.com/broadinstitute/cromwell.git && \
+#     cd cromwell && \
+#     sbt assembly
 
-RUN cd ~/workspace/tools/ && \
+#Sortmerna
+RUN cd / && \
 	git clone https://github.com/biocore/sortmerna && \
 	cd sortmerna && \
 	./build.sh
 
-RUN cd ~/workspace/tools/ && \
+#trimmomatic
+RUN cd / && \
 	git clone https://github.com/timflutre/trimmomatic.git && \
 	cd trimmomatic && \
-	make INSTALL="~/workspace/tools/" && \
+	make INSTALL="/" && \
 	make check && \
 	make install && \
-	mv /root/bin/trimmomatic.jar ~/workspace/tools/trimmomatic
+	mv /root/bin/trimmomatic.jar /trimmomatic
 	
-
+#samstat
 RUN echo $PATH && \ 
-	cd ~/workspace/tools/ && \
+	cd / && \
 	wget http://downloads.sourceforge.net/project/samstat/samstat-1.5.1.tar.gz && \
 	tar -xzvf samstat-1.5.1.tar.gz && \
 	cd samstat-1.5.1 && \
-	ls ~/workspace/tools/samtools-1.3.1 && \
+	ls /samtools-1.3.1 && \
 	sed -i '2847s/.*/SAMTOOLS=samtools/' configure && \
 	./configure && \
 	make 
 
 #HTSeq
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	wget https://pypi.python.org/packages/source/H/HTSeq/HTSeq-0.6.1p1.tar.gz && \
 	tar -zxvf HTSeq-0.6.1p1.tar.gz && \
 	cd HTSeq-0.6.1p1/ && \
@@ -147,11 +145,25 @@ RUN cd ~/workspace/tools/ && \
 	chmod +x scripts/htseq-count 
 
 #BackSPIN
-RUN cd ~/workspace/tools/ && \
+RUN cd / && \
 	wget https://github.com/linnarsson-lab/BackSPIN/archive/v1.0.tar.gz && \
 	tar -zxvf v1.0.tar.gz && \
 	cd BackSPIN-1.0 && \
 	chmod uga+x backSPIN.py
+
+RUN cd / && \
+	git clone https://github.com/lakigigar/scRNA-Seq-TCC-prep
+
+RUN apt-get install -y python-sklearn
+
+RUN cd / && rm *.gz *.tar *.zip
+ENV PATH="/samtools-1.3.1:/bam-readcount/bin:/STAR-2.5.1b/source:/HTSeq-0.6.1p1/scripts:/FastQC:/picard-tools-1.140:/samstat-1.5.1/src:/kallisto:/sortmerna:/trimmomatic:/usr/local/bin:${PATH}"
+
+
+
+
+
+
 
 
 
